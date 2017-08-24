@@ -83,7 +83,7 @@ func main() {
 	fmt.Println("License Text")
 	fmt.Println(licenseText)
 
-	file, err := os.Open("lic.go")
+	file, err := os.Open("lhc.go")
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -123,6 +123,6 @@ func main() {
 	fmt.Println("Header Text")
 	fmt.Println(headerText)
 	if licenseText != headerText {
-		fmt.Println("WARNING: License header does not match.", "lic.go")
+		fmt.Println("WARNING: License header does not match.", "lhc.go")
 	}
 }
