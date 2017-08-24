@@ -40,7 +40,8 @@ var VERSION = "0.1.0"
 
 func check(e error) {
 	if e != nil {
-		panic(e)
+		fmt.Println(e)
+		os.Exit(1)
 	}
 }
 
@@ -79,11 +80,13 @@ func main() {
 	buf, err := ioutil.ReadFile(*licensePtr)
 	check(err)
 	licenseText := stripSpaces(string(buf))
+	fmt.Println("License Text")
 	fmt.Println(licenseText)
 
 	file, err := os.Open("lic.go")
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	}
 	defer file.Close()
 
@@ -117,6 +120,7 @@ func main() {
 		headerText += stripSpaces(s)
 	}
 
+	fmt.Println("Header Text")
 	fmt.Println(headerText)
 	if licenseText != headerText {
 		fmt.Println("WARNING: License header does not match.", "lic.go")
