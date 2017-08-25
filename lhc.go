@@ -32,6 +32,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 	"unicode"
 )
@@ -111,8 +112,10 @@ func isComment(str string) bool {
 }
 
 func ignoreComment(str string) bool {
-	if strings.Contains(str, "Copyright") ||
-		strings.Contains(str, "SPDX-License-Identifier") {
+	s := strings.ToUpper(str)
+	if strings.HasPrefix(s, "#!") ||
+		strings.Contains(s, "COPYRIGHT") ||
+		strings.Contains(s, "SPDX-LICENSE-IDENTIFIER") {
 		return true
 	}
 
@@ -140,16 +143,23 @@ func trimComment(str string) string {
 
 // Usage prints a statement to explain how to use this command.
 func usage() {
-	fmt.Printf("Usage: %s [OPTIONS] [PATTERN]...\n", os.Args[0])
-	fmt.Printf("Scans a directory for files matching PATTERN and compares them with an expected license header.\n")
-	fmt.Printf("\nPATTERN is a space separated list of regex patterns to search for files.\n")
+	fmt.Printf("Usage: %s [OPTIONS] [FILE]...\n", os.Args[0])
+	fmt.Printf("Compare FILE with an expected license header.\n")
 	fmt.Printf("\nOptions:\n")
 	flag.PrintDefaults()
+}
+
+func visit(pattern []string) filepath.WalkFunc {
+	return func(path string, info os.FileInfo, err error) error {
+		fmt.Printf("Visited: %s\n", path)
+		return nil
+	}
 }
 
 func main() {
 	licensePtr := flag.String("license", "license.txt", "Comma-separated list of license files to compare against.")
 	versionPtr := flag.Bool("version", false, "Print version")
+	// extensions := flag.String("extensions", false, "Instead of a list of files list of extensions to search")
 	// directoryPtr := flag.String("directory", ".", "Directory to search for files.")
 
 	flag.Usage = usage
@@ -163,11 +173,17 @@ func main() {
 	fmt.Println("Search Patterns:", flag.Args())
 
 	licenseText := fetchLicense(*licensePtr)
-	headerText := fetchLicense("lhc.go")
+	fmt.Println(licenseText)
 
-	if licenseText != headerText {
-		fmt.Println("✘", "lhc.go")
-	} else {
-		fmt.Println("✔", "lhc.go")
+	for _, f := range flag.Args() {
+		headerText := fetchLicense(f)
+		fmt.Println(headerText)
+		if licenseText != headerText {
+			fmt.Println("✘", f)
+		} else {
+			fmt.Println("✔", f)
+		}
 	}
+
+	// filepath.Walk(".", visit(flag.Args()))
 }
