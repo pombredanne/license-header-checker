@@ -24,6 +24,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+// lhc is a checker to find code files missing license headers.
 package main
 
 import (
@@ -37,6 +38,7 @@ import (
 
 var VERSION = "0.1.0"
 
+// check and exit if error.
 func check(e error) {
 	if e != nil {
 		fmt.Println(e)
@@ -44,6 +46,7 @@ func check(e error) {
 	}
 }
 
+// fetchLicense from file and return license text.
 func fetchLicense(filename string) string {
 	file, err := os.Open(filename)
 	check(err)
@@ -97,6 +100,8 @@ func fetchLicense(filename string) string {
 	return stripSpaces(licenseText)
 }
 
+
+// Check if a string is a comment line.
 func isComment(str string) bool {
 	if !strings.HasPrefix(str, "#") &&
 		!strings.HasPrefix(str, "//") &&
@@ -107,6 +112,7 @@ func isComment(str string) bool {
 	return true
 }
 
+// Strip whitespace from string.
 func stripSpaces(str string) string {
 	return strings.Map(func(r rune) rune {
 		if unicode.IsSpace(r) {
@@ -116,6 +122,7 @@ func stripSpaces(str string) string {
 	}, str)
 }
 
+// Trim the comment prefix from string.
 func trimComment(str string) string {
 	str = strings.TrimPrefix(str, "#")
 	str = strings.TrimPrefix(str, "//")
@@ -124,6 +131,7 @@ func trimComment(str string) string {
 	return str
 }
 
+// Usage prints a statement to explain how to use this command.
 func usage() {
 	fmt.Printf("Usage: %s [OPTIONS] [PATTERN]...\n", os.Args[0])
 	fmt.Printf("Scans a directory for files matching PATTERN and compares them with an expected license header.\n")
