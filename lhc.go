@@ -52,7 +52,7 @@ func fetchLicense(filename string) string {
 	}
 	defer file.Close()
 
-    code, commentSection := false, false
+    comment, commentSection := false, false
 	licenseText := ""
 	scanner := bufio.NewScanner(file)
 
@@ -61,7 +61,7 @@ func fetchLicense(filename string) string {
     check(err)
     if isComment(string(b1)) {
         fmt.Printf("Comment string detected. %d bytes: %s\n", n1, string(b1))
-        code = true
+        comment = true
     }
     file.Seek(0, 0)  // Reset so we can read the full file
 
@@ -75,7 +75,7 @@ func fetchLicense(filename string) string {
             continue
         }
 
-        if code == true {
+        if comment == true {
     		if strings.HasPrefix(s, "/*") {
     			commentSection = true
     		} else if commentSection && strings.Contains(s, "*/") {
