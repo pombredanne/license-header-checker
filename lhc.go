@@ -45,6 +45,47 @@ func check(e error) {
 	}
 }
 
+func fetchLicense(filename string) string {
+    file, err := os.Open(filename)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	defer file.Close()
+
+    commentSection := false
+	licenseText := ""
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		s := scanner.Text()
+
+		if strings.HasPrefix(s, "/*") {
+			commentSection = true
+		} else if commentSection && strings.Contains(s, "*/") {
+			commentSection = false
+			// TODO: Ignore Copyright lines in license header text
+			// } else if strings.Contains(s, "Copyright") {
+			// 	continue
+		} else if strings.Contains(s, "SPDX-License-Identifier") {
+			continue
+		}
+
+		if !commentSection &&
+			!strings.HasPrefix(s, "#") &&
+			!strings.HasPrefix(s, "//") {
+			break
+		}
+
+		s = strings.TrimPrefix(s, "#")
+		s = strings.TrimPrefix(s, "//")
+		s = strings.TrimPrefix(s, "/*")
+		s = strings.Split(s, "*/")[0]
+		licenseText += stripSpaces(s)
+	}
+
+    return licenseText
+}
+
 func stripSpaces(str string) string {
 	return strings.Map(func(r rune) rune {
 		if unicode.IsSpace(r) {
@@ -83,42 +124,7 @@ func main() {
 	fmt.Println("License Text")
 	fmt.Println(licenseText)
 
-	file, err := os.Open("lhc.go")
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	defer file.Close()
-
-	headerText := ""
-	scanner := bufio.NewScanner(file)
-	commentSection := false
-	for scanner.Scan() {
-		s := scanner.Text()
-
-		if strings.HasPrefix(s, "/*") {
-			commentSection = true
-		} else if commentSection && strings.Contains(s, "*/") {
-			commentSection = false
-			// TODO: Ignore Copyright lines in license header text
-			// } else if strings.Contains(s, "Copyright") {
-			// 	continue
-		} else if strings.Contains(s, "SPDX-License-Identifier") {
-			continue
-		}
-
-		if !commentSection &&
-			!strings.HasPrefix(s, "#") &&
-			!strings.HasPrefix(s, "//") {
-			break
-		}
-
-		s = strings.TrimPrefix(s, "#")
-		s = strings.TrimPrefix(s, "//")
-		s = strings.TrimPrefix(s, "/*")
-		s = strings.Split(s, "*/")[0]
-		headerText += stripSpaces(s)
-	}
+	headerText := fetchLicense("lhc.go")
 
 	fmt.Println("Header Text")
 	fmt.Println(headerText)
