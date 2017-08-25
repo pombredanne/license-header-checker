@@ -30,7 +30,6 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"unicode"
@@ -53,37 +52,67 @@ func fetchLicense(filename string) string {
 	}
 	defer file.Close()
 
-    commentSection := false
+    code, commentSection := false, false
 	licenseText := ""
 	scanner := bufio.NewScanner(file)
+
+    b1 := make([]byte, 2)
+    n1, err := file.Read(b1)
+    check(err)
+    if isComment(string(b1)) {
+        fmt.Printf("Comment string detected. %d bytes: %s\n", n1, string(b1))
+        code = true
+    }
+    file.Seek(0, 0)  // Reset so we can read the full file
+
+    i := 0
 	for scanner.Scan() {
 		s := scanner.Text()
 
-		if strings.HasPrefix(s, "/*") {
-			commentSection = true
-		} else if commentSection && strings.Contains(s, "*/") {
-			commentSection = false
-			// TODO: Ignore Copyright lines in license header text
-			// } else if strings.Contains(s, "Copyright") {
-			// 	continue
-		} else if strings.Contains(s, "SPDX-License-Identifier") {
-			continue
-		}
+        if strings.Contains(s, "Copyright") {
+            continue
+        } else if strings.Contains(s, "SPDX-License-Identifier") {
+            continue
+        }
 
-		if !commentSection &&
-			!strings.HasPrefix(s, "#") &&
-			!strings.HasPrefix(s, "//") {
-			break
-		}
+        if code == true {
+    		if strings.HasPrefix(s, "/*") {
+    			commentSection = true
+    		} else if commentSection && strings.Contains(s, "*/") {
+    			commentSection = false
+    		}
 
-		s = strings.TrimPrefix(s, "#")
-		s = strings.TrimPrefix(s, "//")
-		s = strings.TrimPrefix(s, "/*")
-		s = strings.Split(s, "*/")[0]
-		licenseText += stripSpaces(s)
+    		if !commentSection &&
+    			!isComment(s) {
+    			break
+    		}
+
+    		s = strings.TrimPrefix(s, "#")
+    		s = strings.TrimPrefix(s, "//")
+    		s = strings.TrimPrefix(s, "/*")
+    		s = strings.Split(s, "*/")[0]
+        }
+
+		licenseText += s
+
+        // Limit to reading only the first few lines to not read entire code file
+        i++
+        if i > 100 {
+            break
+        }
 	}
 
-    return licenseText
+    return stripSpaces(licenseText)
+}
+
+func isComment(str string) bool {
+    if !strings.HasPrefix(str, "#") &&
+        !strings.HasPrefix(str, "//") &&
+        !strings.HasPrefix(str, "/*") {
+        return false
+    }
+
+    return true
 }
 
 func stripSpaces(str string) string {
@@ -118,16 +147,14 @@ func main() {
 
 	fmt.Println("Search Patterns:", flag.Args())
 
-	buf, err := ioutil.ReadFile(*licensePtr)
-	check(err)
-	licenseText := stripSpaces(string(buf))
+	licenseText := fetchLicense(*licensePtr)
 	fmt.Println("License Text")
 	fmt.Println(licenseText)
 
 	headerText := fetchLicense("lhc.go")
-
 	fmt.Println("Header Text")
 	fmt.Println(headerText)
+
 	if licenseText != headerText {
 		fmt.Println("WARNING: License header does not match.", "lhc.go")
 	}
