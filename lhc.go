@@ -56,6 +56,7 @@ func fetchLicense(filename string) string {
 	licenseText := ""
 	scanner := bufio.NewScanner(file)
 
+	// Read the first 2 bytes to decide if it is a comment string
 	b := make([]byte, 2)
 	_, err = file.Read(b)
 	check(err)
@@ -74,9 +75,7 @@ func fetchLicense(filename string) string {
 
 		s := scanner.Text()
 
-		if strings.Contains(s, "Copyright") {
-			continue
-		} else if strings.Contains(s, "SPDX-License-Identifier") {
+		if ignoreComment(s) {
 			continue
 		}
 
@@ -100,7 +99,6 @@ func fetchLicense(filename string) string {
 	return stripSpaces(licenseText)
 }
 
-
 // Check if a string is a comment line.
 func isComment(str string) bool {
 	if !strings.HasPrefix(str, "#") &&
@@ -110,6 +108,15 @@ func isComment(str string) bool {
 	}
 
 	return true
+}
+
+func ignoreComment(str string) bool {
+	if strings.Contains(str, "Copyright") ||
+		strings.Contains(str, "SPDX-License-Identifier") {
+		return true
+	}
+
+	return false
 }
 
 // Strip whitespace from string.
