@@ -33,6 +33,8 @@ import (
 	"path/filepath"
 	"strings"
 	"unicode"
+
+    "github.com/zxiiro/license-header-checker/license"
 )
 
 var VERSION = "0.1.0"
@@ -61,22 +63,30 @@ func findFiles(directory string, patterns []string) []string {
 
 // fetchLicense from file and return license text.
 func fetchLicense(filename string) string {
-	file, err := os.Open(filename)
-	check(err)
-	defer file.Close()
+    comment, multilineComment := false, false
+    licenseText := ""
 
-	comment, multilineComment := false, false
-	licenseText := ""
-	scanner := bufio.NewScanner(file)
+    var scanner *bufio.Scanner
+    if filename == "MIT" {
+        scanner = bufio.NewScanner(strings.NewReader(license.MIT_LICENSE))
+    } else if filename == "EPL-1.0" {
+        scanner = bufio.NewScanner(strings.NewReader(license.EPL_10_LICENSE))
+    } else {
+    	file, err := os.Open(filename)
+    	check(err)
+    	defer file.Close()
 
-	// Read the first 2 bytes to decide if it is a comment string
-	b := make([]byte, 2)
-	_, err = file.Read(b)
-	check(err)
-	if isComment(string(b)) {
-		comment = true
-	}
-	file.Seek(0, 0) // Reset so we can read the full file next
+        // Read the first 2 bytes to decide if it is a comment string
+    	b := make([]byte, 2)
+    	_, err = file.Read(b)
+    	check(err)
+    	if isComment(string(b)) {
+    		comment = true
+    	}
+    	file.Seek(0, 0) // Reset so we can read the full file next
+
+        scanner = bufio.NewScanner(file)
+    }
 
 	i := 0
 	for scanner.Scan() {
