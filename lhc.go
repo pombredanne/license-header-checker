@@ -115,8 +115,8 @@ func ignoreComment(str string) bool {
 	if strings.HasPrefix(s, "#!") ||
 		strings.Contains(s, "COPYRIGHT") ||
 		strings.Contains(s, "SPDX-LICENSE-IDENTIFIER") ||
-        // License name in LICENSE file but not header
-        strings.Contains(s, "MIT LICENSE") {
+		// License name in LICENSE file but not header
+		strings.Contains(s, "MIT LICENSE") {
 		return true
 	}
 
@@ -150,18 +150,11 @@ func usage() {
 	flag.PrintDefaults()
 }
 
-func visit(pattern []string) filepath.WalkFunc {
-	return func(path string, info os.FileInfo, err error) error {
-		fmt.Printf("Visited: %s\n", path)
-		return nil
-	}
-}
-
 func main() {
+	directoryPtr := flag.String("directory", ".", "Directory to search for files.")
 	licensePtr := flag.String("license", "license.txt", "Comma-separated list of license files to compare against.")
 	versionPtr := flag.Bool("version", false, "Print version")
 	// extensions := flag.String("extensions", false, "Instead of a list of files list of extensions to search")
-	// directoryPtr := flag.String("directory", ".", "Directory to search for files.")
 
 	flag.Usage = usage
 	flag.Parse()
@@ -175,7 +168,13 @@ func main() {
 
 	licenseText := fetchLicense(*licensePtr)
 
-	for _, f := range flag.Args() {
+	var checkFiles []string
+	for _, p := range flag.Args() {
+		f, _ := filepath.Glob(filepath.Join(*directoryPtr, p))
+		checkFiles = append(checkFiles, f...)
+	}
+
+	for _, f := range checkFiles {
 		headerText := fetchLicense(f)
 		if licenseText != headerText {
 			fmt.Println("✘", f)
@@ -183,6 +182,4 @@ func main() {
 			fmt.Println("✔", f)
 		}
 	}
-
-	// filepath.Walk(".", visit(flag.Args()))
 }
