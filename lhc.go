@@ -45,6 +45,20 @@ func check(e error) {
 	}
 }
 
+func findFiles(directory string, patterns []string) []string {
+	var files []string
+	filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			for _, p := range patterns {
+				f, _ := filepath.Glob(filepath.Join(path, p))
+				files = append(files, f...)
+			}
+		}
+		return nil
+	})
+	return files
+}
+
 // fetchLicense from file and return license text.
 func fetchLicense(filename string) string {
 	file, err := os.Open(filename)
@@ -167,12 +181,7 @@ func main() {
 	fmt.Println("Search Patterns:", flag.Args())
 
 	licenseText := fetchLicense(*licensePtr)
-
-	var checkFiles []string
-	for _, p := range flag.Args() {
-		f, _ := filepath.Glob(filepath.Join(*directoryPtr, p))
-		checkFiles = append(checkFiles, f...)
-	}
+	checkFiles := findFiles(*directoryPtr, flag.Args())
 
 	for _, f := range checkFiles {
 		headerText := fetchLicense(f)
