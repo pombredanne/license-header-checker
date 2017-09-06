@@ -168,7 +168,6 @@ func main() {
 	directoryPtr := flag.String("directory", ".", "Directory to search for files.")
 	licensePtr := flag.String("license", "license.txt", "Comma-separated list of license files to compare against.")
 	versionPtr := flag.Bool("version", false, "Print version")
-	// extensions := flag.String("extensions", false, "Instead of a list of files list of extensions to search")
 
 	flag.Usage = usage
 	flag.Parse()
