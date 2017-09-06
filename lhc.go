@@ -174,11 +174,9 @@ func main() {
 	fmt.Println("Search Patterns:", flag.Args())
 
 	licenseText := fetchLicense(*licensePtr)
-	fmt.Println(licenseText)
 
 	for _, f := range flag.Args() {
 		headerText := fetchLicense(f)
-		fmt.Println(headerText)
 		if licenseText != headerText {
 			fmt.Println("✘", f)
 		} else {
