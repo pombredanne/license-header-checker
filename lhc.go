@@ -1,8 +1,6 @@
 /*
 SPDX-License-Identifier: MIT
 
-MIT License
-
 Copyright (c) 2017 Thanh Ha
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -111,11 +109,14 @@ func isComment(str string) bool {
 	return true
 }
 
+// Ignore certain lines containing key strings
 func ignoreComment(str string) bool {
 	s := strings.ToUpper(str)
 	if strings.HasPrefix(s, "#!") ||
 		strings.Contains(s, "COPYRIGHT") ||
-		strings.Contains(s, "SPDX-LICENSE-IDENTIFIER") {
+		strings.Contains(s, "SPDX-LICENSE-IDENTIFIER") ||
+        // License name in LICENSE file but not header
+        strings.Contains(s, "MIT LICENSE") {
 		return true
 	}
 
