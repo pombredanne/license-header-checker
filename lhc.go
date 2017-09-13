@@ -39,15 +39,21 @@ import (
 
 var VERSION = "0.1.0"
 
+type License struct {
+	Name string
+	Text string
+}
+
 // Compare a license header with an approved list of license headers.
-func accepted_license(check string, approved []string) bool {
+// Returns the name of the license that was approved. Else "".
+func accepted_license(check string, approved []License) string {
 	for _, i := range approved {
-		if check == i {
-			return true
+		if check == i.Text {
+			return i.Name
 		}
 	}
 
-	return false
+	return ""
 }
 
 // check and exit if error.
@@ -204,15 +210,16 @@ func main() {
 
 	fmt.Println("Search Patterns:", flag.Args())
 
-	var accepted_licenses []string
+	var accepted_licenses []License
 	for _, l := range strings.Split(*licensePtr, ",") {
-		accepted_licenses = append(accepted_licenses, fetchLicense(l))
+		license := License{l, fetchLicense(l)}
+		accepted_licenses = append(accepted_licenses, license)
 	}
 	checkFiles := findFiles(*directoryPtr, flag.Args())
 
 	for _, f := range checkFiles {
 		headerText := fetchLicense(f)
-		if accepted_license(headerText, accepted_licenses) {
+		if accepted_license(headerText, accepted_licenses) != "" {
 			fmt.Println("✔", f)
 		} else {
 			fmt.Println("✘", f)
