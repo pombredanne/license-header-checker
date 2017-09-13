@@ -37,6 +37,7 @@ import (
 	"github.com/zxiiro/license-header-checker/license"
 )
 
+var LICENSE_HEADER_LINES = 50
 var VERSION = "0.1.0"
 
 type License struct {
@@ -62,6 +63,34 @@ func check(e error) {
 		fmt.Println(e)
 		os.Exit(1)
 	}
+}
+
+func checkSPDX(license string, filename string) bool {
+	file, err := os.Open(filename)
+	check(err)
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+
+	i := 0
+	for scanner.Scan() {
+		// Read only the first few lines to not read entire code file
+		i++
+		if i > LICENSE_HEADER_LINES {
+			break
+		}
+
+		s := strings.ToUpper(scanner.Text())
+		if strings.Contains(s, "SPDX-LICENSE-IDENTIFIER:") {
+			spdx := stripSpaces(strings.SplitN(s, ":", 2)[1])
+			if spdx == license {
+				return true
+			} else {
+				return false
+			}
+		}
+	}
+
+	return false
 }
 
 func findFiles(directory string, patterns []string) []string {
@@ -109,7 +138,7 @@ func fetchLicense(filename string) string {
 	for scanner.Scan() {
 		// Read only the first few lines to not read entire code file
 		i++
-		if i > 50 {
+		if i > LICENSE_HEADER_LINES {
 			break
 		}
 
@@ -197,6 +226,7 @@ func usage() {
 
 func main() {
 	directoryPtr := flag.String("directory", ".", "Directory to search for files.")
+	SPDXPtr := flag.Bool("spdx", false, "Verify SDPX identifier matches license.")
 	licensePtr := flag.String("license", "license.txt", "Comma-separated list of license files to compare against.")
 	versionPtr := flag.Bool("version", false, "Print version")
 
@@ -217,12 +247,22 @@ func main() {
 	}
 	checkFiles := findFiles(*directoryPtr, flag.Args())
 
-	for _, f := range checkFiles {
-		headerText := fetchLicense(f)
-		if accepted_license(headerText, accepted_licenses) != "" {
-			fmt.Println("✔", f)
+	for _, file := range checkFiles {
+		headerText := fetchLicense(file)
+		license := accepted_license(headerText, accepted_licenses)
+		result := ""
+		if license != "" {
+			result = result + "✔"
 		} else {
-			fmt.Println("✘", f)
+			result = result + "✘"
 		}
+		if *SPDXPtr {
+			if checkSPDX(license, file) {
+				result = result + "✔"
+			} else {
+				result = result + "✘"
+			}
+		}
+		fmt.Println(result, file)
 	}
 }
