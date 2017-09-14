@@ -251,7 +251,7 @@ func main() {
 	}
 	checkFiles := findFiles(*directoryPtr, flag.Args())
 
-	miss, pass := 0, 0
+	miss, pass, spdx_miss, spdx_pass := 0, 0, 0, 0
 	for _, file := range checkFiles {
 		headerText := fetchLicense(file)
 		license := accepted_license(headerText, accepted_licenses)
@@ -268,14 +268,20 @@ func main() {
 		if *SPDXPtr {
 			if checkSPDX(license, file) {
 				result = result + "✔"
+				spdx_pass++
 			} else {
 				result = result + "✘"
+				spdx_miss++
 			}
 		}
 		fmt.Println(result, file)
 	}
 
-	fmt.Println("Total:", len(checkFiles),
-		"Missing:", miss,
-		"Passed:", pass)
+	fmt.Printf("License Total: %d, Missing: %d, Passed: %d\n",
+		len(checkFiles), miss, pass)
+
+	if *SPDXPtr {
+		fmt.Printf("SPDX Total: %d, Missing: %d, Passed: %d\n",
+			len(checkFiles), spdx_miss, spdx_pass)
+	}
 }
