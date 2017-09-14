@@ -142,7 +142,11 @@ func fetchLicense(filename string) string {
 			break
 		}
 
-		s := scanner.Text()
+		// We do not care about case sensitivity
+		s := strings.ToUpper(scanner.Text())
+
+		// Some projects DO NOT explicitly print this statement so ignore.
+		s = strings.Replace(s, "ALL RIGHTS RESERVED.", "", -1)
 
 		if ignoreComment(s) {
 			continue
