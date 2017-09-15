@@ -37,7 +37,7 @@ import (
 	"github.com/zxiiro/license-header-checker/licenses"
 )
 
-var LICENSE_HEADER_LINES = 50
+var LICENSE_HEADER_LINES_MAX = 50
 var VERSION = "0.1.0"
 
 type License struct {
@@ -75,7 +75,7 @@ func checkSPDX(license string, filename string) bool {
 	for scanner.Scan() {
 		// Read only the first few lines to not read entire code file
 		i++
-		if i > LICENSE_HEADER_LINES {
+		if i > LICENSE_HEADER_LINES_MAX {
 			break
 		}
 
@@ -147,7 +147,7 @@ func fetchLicense(filename string) string {
 	for scanner.Scan() {
 		// Read only the first few lines to not read entire code file
 		i++
-		if i > LICENSE_HEADER_LINES {
+		if i > LICENSE_HEADER_LINES_MAX {
 			break
 		}
 
