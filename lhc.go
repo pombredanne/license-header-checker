@@ -198,12 +198,12 @@ func isComment(str string) bool {
 
 // Ignore certain lines containing key strings
 func ignoreComment(str string) bool {
-	s := strings.ToUpper(str)
+	s := strings.ToUpper(trimComment(str))
 	if strings.HasPrefix(s, "#!") ||
-		strings.Contains(s, "COPYRIGHT") ||
-		strings.Contains(s, "SPDX-LICENSE-IDENTIFIER") ||
+		strings.HasPrefix(s, "COPYRIGHT") ||
+		strings.HasPrefix(s, "SPDX-LICENSE-IDENTIFIER") ||
 		// License name in LICENSE file but not header
-		strings.Contains(s, "MIT LICENSE") {
+		strings.HasPrefix(s, "MIT LICENSE") {
 		return true
 	}
 
