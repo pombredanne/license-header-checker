@@ -240,12 +240,12 @@ func usage() {
 func main() {
 	directoryPtr := flag.String("directory", ".",
 		"Directory to search for files.")
+	disableSPDXPtr := flag.Bool("disable-spdx", false,
+		"Verify SDPX identifier matches license.")
 	excludePtr := flag.String("exclude", "",
 		"Comma-separated list of paths to exclude. The code will search for "+
 			"paths containing this pattern. For example '/yang/gen/' is "+
 			"'**/yang/gen/**'.")
-	SPDXPtr := flag.Bool("spdx", false,
-		"Verify SDPX identifier matches license.")
 	licensePtr := flag.String("license", "license.txt",
 		"Comma-separated list of license files to compare against.")
 	versionPtr := flag.Bool("version", false, "Print version")
@@ -287,7 +287,7 @@ func main() {
 			miss++
 		}
 
-		if *SPDXPtr {
+		if !*disableSPDXPtr {
 			if checkSPDX(license, file) {
 				result = result + "✔"
 				spdx_pass++
@@ -302,7 +302,7 @@ func main() {
 	fmt.Printf("License Total: %d, Ignored: %d, Missing: %d, Passed: %d\n",
 		len(checkFiles), ignore, miss, pass)
 
-	if *SPDXPtr {
+	if !*disableSPDXPtr {
 		fmt.Printf("SPDX Total: %d, Missing: %d, Passed: %d\n",
 			len(checkFiles), spdx_miss, spdx_pass)
 	}
