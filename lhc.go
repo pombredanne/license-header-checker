@@ -124,6 +124,8 @@ func fetchLicense(filename string) string {
 	var scanner *bufio.Scanner
 	if filename == "Apache-2.0" {
 		scanner = bufio.NewScanner(strings.NewReader(license.APACHE_20_LICENSE))
+	} else if filename == "Apache-2.0-ASF" {
+		scanner = bufio.NewScanner(strings.NewReader(license.APACHE_20_LICENSE_ASF))
 	} else if filename == "EPL-1.0" {
 		scanner = bufio.NewScanner(strings.NewReader(license.EPL_10_LICENSE))
 	} else if filename == "MIT" {
@@ -266,6 +268,11 @@ func main() {
 	for _, l := range strings.Split(*licensePtr, ",") {
 		license := License{l, fetchLicense(l)}
 		accepted_licenses = append(accepted_licenses, license)
+
+		if l == "Apache-2.0" {
+			license := License{l, fetchLicense("Apache-2.0-ASF")}
+			accepted_licenses = append(accepted_licenses, license)
+		}
 	}
 	checkFiles := findFiles(*directoryPtr, flag.Args())
 
