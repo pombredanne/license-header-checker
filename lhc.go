@@ -315,4 +315,8 @@ func main() {
 		fmt.Printf("SPDX Total: %d, Missing: %d, Passed: %d\n",
 			len(checkFiles), spdx_miss, spdx_pass)
 	}
+
+	if miss != 0 || spdx_miss != 0 {
+		os.Exit(1)
+	}
 }
