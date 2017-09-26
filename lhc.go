@@ -122,10 +122,12 @@ func fetchLicense(filename string) string {
 	licenseText := ""
 
 	var scanner *bufio.Scanner
-	if filename == "MIT" {
-		scanner = bufio.NewScanner(strings.NewReader(license.MIT_LICENSE))
+	if filename == "Apache-2.0" {
+		scanner = bufio.NewScanner(strings.NewReader(license.APACHE_20_LICENSE))
 	} else if filename == "EPL-1.0" {
 		scanner = bufio.NewScanner(strings.NewReader(license.EPL_10_LICENSE))
+	} else if filename == "MIT" {
+		scanner = bufio.NewScanner(strings.NewReader(license.MIT_LICENSE))
 	} else {
 		file, err := os.Open(filename)
 		check(err)
