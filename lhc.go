@@ -34,7 +34,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/zxiiro/license-header-checker/license"
+	"github.com/zxiiro/license-header-checker/licenses"
 )
 
 var LICENSE_HEADER_LINES = 50
@@ -90,6 +90,15 @@ func checkSPDX(license string, filename string) bool {
 		}
 	}
 
+	return false
+}
+
+func exclude(path string, excludes []string) bool {
+	for i := range excludes {
+		if strings.Contains(path, excludes[i]) {
+			return true
+		}
+	}
 	return false
 }
 
@@ -229,9 +238,16 @@ func usage() {
 }
 
 func main() {
-	directoryPtr := flag.String("directory", ".", "Directory to search for files.")
-	SPDXPtr := flag.Bool("spdx", false, "Verify SDPX identifier matches license.")
-	licensePtr := flag.String("license", "license.txt", "Comma-separated list of license files to compare against.")
+	directoryPtr := flag.String("directory", ".",
+		"Directory to search for files.")
+	excludePtr := flag.String("exclude", "",
+		"Comma-separated list of paths to exclude. The code will search for "+
+			"paths containing this pattern. For example '/yang/gen/' is "+
+			"'**/yang/gen/**'.")
+	SPDXPtr := flag.Bool("spdx", false,
+		"Verify SDPX identifier matches license.")
+	licensePtr := flag.String("license", "license.txt",
+		"Comma-separated list of license files to compare against.")
 	versionPtr := flag.Bool("version", false, "Print version")
 
 	flag.Usage = usage
@@ -251,8 +267,14 @@ func main() {
 	}
 	checkFiles := findFiles(*directoryPtr, flag.Args())
 
-	miss, pass, spdx_miss, spdx_pass := 0, 0, 0, 0
+	ignore, miss, pass, spdx_miss, spdx_pass := 0, 0, 0, 0, 0
 	for _, file := range checkFiles {
+
+		if *excludePtr != "" && exclude(file, strings.Split(*excludePtr, ",")) {
+			ignore++
+			continue
+		}
+
 		headerText := fetchLicense(file)
 		license := accepted_license(headerText, accepted_licenses)
 		result := ""
@@ -277,8 +299,8 @@ func main() {
 		fmt.Println(result, file)
 	}
 
-	fmt.Printf("License Total: %d, Missing: %d, Passed: %d\n",
-		len(checkFiles), miss, pass)
+	fmt.Printf("License Total: %d, Ignored: %d, Missing: %d, Passed: %d\n",
+		len(checkFiles), ignore, miss, pass)
 
 	if *SPDXPtr {
 		fmt.Printf("SPDX Total: %d, Missing: %d, Passed: %d\n",
