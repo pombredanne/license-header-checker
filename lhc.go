@@ -49,7 +49,7 @@ type License struct {
 // Returns the name of the license that was approved. Else "".
 func accepted_license(check string, approved []License) string {
 	for _, i := range approved {
-		if check == i.Text {
+		if strings.Contains(check, i.Text) {
 			return i.Name
 		}
 	}
@@ -173,7 +173,7 @@ func fetchLicense(filename string) string {
 			if !multilineComment && !isComment(s) ||
 				// EPL headers can contain contributors list.
 				strings.Contains(strings.ToUpper(s), " * CONTRIBUTORS:") {
-				break
+				continue
 			}
 
 			s = trimComment(s)
